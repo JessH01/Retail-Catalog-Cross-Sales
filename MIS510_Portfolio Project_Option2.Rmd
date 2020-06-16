@@ -1,0 +1,72 @@
+---
+title: "Portfolio Project Option 2"
+author: "Jessica Ham"
+date: "11/03/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load/Explore the Data
+### Load
+```{r}
+sale.df <- read.csv('C:/Users/Jess/Documents/CSU File Storage/CatalogCrossSell.csv', header = TRUE)
+library(arules)
+library(arulesViz)
+```
+### Explore
+```{r}
+dim(sale.df)
+head(sale.df)
+table(sale.df$Clothing.Division, dnn = "Clothing")
+hist(sale.df$Clothing.Division)
+table(sale.df$Housewares.Division, dnn = "Houseware")
+hist(sale.df$Housewares.Division)
+```
+
+## Conversions
+
+### Convert to Matrix and review
+```{r}
+sale.mat <-as.matrix(sale.df[-1])
+head(sale.mat)
+```
+### Convert to Transactional DB and review
+```{r}
+sale.trans <- as(sale.mat, "transactions")
+inspect(head(sale.trans, n = 5))
+```
+## Rules
+### Get Rules at 0.1 Conf and Inspect
+```{r}
+rules <- apriori(sale.trans, parameter = list(supp = 0.01, conf = 0.1, target = "rules"))
+inspect(head(sort(rules, by="lift"), n=5))
+```
+### Get Rules at 0.5 Conf and Inspect
+```{r}
+rules <- apriori(sale.trans, parameter = list(supp = 0.01, conf = 0.5, target = "rules"))
+inspect(head(sort(rules, by="lift"), n=5))
+```
+## Visualization
+```{r}
+plot(rules)
+plot(rules, method = "two-key plot")
+```
+
+### Adjust MaxLen
+```{r}
+rules.3 <- apriori(sale.trans, parameter = list(supp = 0.01, conf = 0.5, maxlen=3, target = "rules"))
+plot(rules.3, measure = c("support", "lift"), shading = "confidence")
+inspect(head(sort(rules.3, by="lift"), n=5))
+```
+### Export Rules to Manually Trim
+```{r}
+write(rules.3,
+      file = "C:/Users/Jess/Documents/CSU File Storage/association_rules.csv",
+      sep = ",",
+      quote = TRUE,
+      row.names = FALSE)
+```
+
